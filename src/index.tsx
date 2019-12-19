@@ -1,16 +1,16 @@
-import * as React from "react";
-import { render } from "react-dom";
+import * as React from "react"
+import { render } from "react-dom"
 
-import "./styles.css";
+import "./styles.css"
+import { QuestionEditor } from "./question-editor"
 
 function App() {
   return (
     <div className="App">
-      <h1>Hello CodeSandbox</h1>
-      <h2>Start editing to see some magic happen!</h2>
+      <QuestionEditor />
     </div>
-  );
+  )
 }
 
-const rootElement = document.getElementById("root");
-render(<App />, rootElement);
+const rootElement = document.getElementById("root")
+render(<App />, rootElement)

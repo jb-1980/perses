@@ -1,4 +1,12 @@
+:root {
+  --color-primary: #37474f;
+  --color-secondary: #546e7a;
+  --color-gray: #ddd;
+  --color-darkText: #343434;
+  --color-lightText: #fff;
+}
+
 .App {
-  font-family: sans-serif;
-  text-align: center;
+  font-family: "Roboto";
+  color: var(--color-darkText);
 }
