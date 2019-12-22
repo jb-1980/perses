@@ -6,5 +6,6 @@ import {
   PanelTitle,
 } from "./panel"
 import { Pills } from "./pills"
+import { TeX } from "./tex"
 
-export { Panel, PanelBody, PanelFooter, PanelHeading, PanelTitle, Pills }
+export { Panel, PanelBody, PanelFooter, PanelHeading, PanelTitle, Pills, TeX }

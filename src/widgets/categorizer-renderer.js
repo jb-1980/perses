@@ -2,17 +2,15 @@ import React from "react"
 import { css } from "emotion"
 
 export const Categorizer = ({
-  categories,
-  items,
-  values,
-  setValues,
-  validator,
+  categories = [],
+  items = [],
+  values = [],
+  getNewProps,
 }) => {
   const validate = (categoryId, itemId) => {
     const newValues = [...values]
     newValues[itemId] = categoryId
-    setValues(newValues)
-    validator({ categories, items, values: newValues })
+    getNewProps({ categories, items, values: newValues })
   }
   return (
     <table
@@ -100,21 +98,25 @@ export const Categorizer = ({
   )
 }
 
-// export default {
-//   name: "categorizer",
-//   displayName: "Categorizer",
-//   widget: Categorizer,
-//   //   transform: editorProps => {
-//   //     return _.pick(editorProps, "items", "categories", "randomizeItems")
-//   //   },
-//   //   staticTransform: editorProps => {
-//   //     return _.pick(
-//   //       editorProps,
-//   //       "items",
-//   //       "categories",
-//   //       "values",
-//   //       "randomizeItems"
-//   //     )
-//   //   },
-//   //   isLintable: true,
-// }
+export default {
+  type: "categorizer",
+  displayName: "Categorizer",
+  widget: Categorizer,
+  grade: (props, options) => {
+    const { values: correctValues } = options
+    const { values: userValues } = props
+
+    for (let i = 0; i < userValues.length; i += 1) {
+      if (correctValues[i] !== userValues[i]) {
+        return false
+      }
+    }
+
+    return true
+  },
+  transform: options => ({
+    items: options.items,
+    categories: options.categories,
+    randomizeItems: options.randomizeItems,
+  }),
+}

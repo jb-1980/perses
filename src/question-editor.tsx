@@ -13,83 +13,29 @@ import {
 } from "./UI"
 import { Renderer } from "./renderer"
 import { Editors } from "./widgets"
+import {
+  EditorContextProvider,
+  useEditorContext,
+} from "./contexts/editor-context"
+import { RendererContextProvider } from "./contexts/renderer-context"
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "SET_EDITOR_STATE": {
-      return {
-        ...state,
-        question: {
-          ...state.question,
-          content: action.editorState,
-        },
-      }
-    }
-    case "INSERT_WIDGET": {
-      const currentContent = action.editorState.getCurrentContent()
-      const currentSelection = action.editorState.getSelection()
-
-      const { widgets } = state.question
-
-      const widget = Modifier.replaceText(
-        currentContent,
-        currentSelection,
-        `[[☃${action.widget}]]`
-      )
-
-      const newEditorState = EditorState.push(
-        action.editorState,
-        widget,
-        "insert-characters"
-      )
-
-      return {
-        ...state,
-        question: {
-          ...state.question,
-          content: newEditorState,
-          widgets: {
-            [action.widget]: Editors.find(w => w.name === action.widget),
-          },
-        },
-      }
-    }
-    case "INSERT_TEMPLATE": {
-      const currentContent = action.editorState.getCurrentContent()
-      const currentSelection = action.editorState.getSelection()
-
-      const template = Modifier.replaceText(
-        currentContent,
-        currentSelection,
-        templates[action.template]
-      )
-
-      const newEditorState = EditorState.push(
-        action.editorState,
-        template,
-        "insert-characters"
-      )
-
-      return {
-        ...state,
-        question: {
-          ...state.question,
-          content: newEditorState,
-        },
-      }
-    }
-  }
+const initialEditorContents = {
+  question: {
+    content: "",
+    images: {},
+    widgets: {},
+  },
+  hints: {},
 }
 
-export const QuestionEditor = props => {
-  const [{ question, hints }, dispatch] = React.useReducer(reducer, {
-    question: {
-      content: EditorState.createEmpty(),
-      images: {},
-      widgets: {},
-    },
-    hints: {},
-  })
+export const QuestionEditor = ({ initialContents = initialEditorContents }) => (
+  <EditorContextProvider initialContents={initialContents}>
+    <ProvidedQuestionEditor />
+  </EditorContextProvider>
+)
+
+const ProvidedQuestionEditor = () => {
+  const { serialize } = useEditorContext()
   const [view, setView] = React.useState("editor")
   const tabs = [
     { id: "editor", name: "Editor" },
@@ -97,17 +43,11 @@ export const QuestionEditor = props => {
   ]
 
   const currentView = {
-    editor: (
-      <EditorView
-        widgets={question.widgets}
-        editorState={question.content}
-        dispatch={dispatch}
-      />
-    ),
+    editor: <EditorView />,
     renderer: (
-      <Renderer
-        content={question.content.getCurrentContent().getPlainText("\n")}
-      />
+      <RendererContextProvider itemData={serialize()}>
+        <Renderer />
+      </RendererContextProvider>
     ),
   }[view]
 
@@ -122,15 +62,23 @@ export const QuestionEditor = props => {
 const WidgetSelect = ({ onChange }) => (
   <select value="default" onChange={onChange}>
     <option value="default">Insert a widget…</option>
-    {Editors.map(({ name }) => (
-      <option value={name} key={name}>
-        {name}
+    {Editors.map(({ type, displayName }) => (
+      <option value={type} key={type}>
+        {displayName}
       </option>
     ))}
   </select>
 )
 
-const EditorView = ({ widgets, editorState, dispatch }) => {
+const EditorView = () => {
+  const {
+    question,
+    editorState,
+    updateEditorContent,
+    insertWidget,
+    insertTemplate,
+  } = useEditorContext()
+
   return (
     <div>
       <Panel>
@@ -140,31 +88,15 @@ const EditorView = ({ widgets, editorState, dispatch }) => {
         <PanelBody>
           <Editor
             editorState={editorState}
-            onChange={editorState =>
-              dispatch({ type: "SET_EDITOR_STATE", editorState })
-            }
+            onChange={updateEditorContent}
             placeholder="Type your question here…"
           />
         </PanelBody>
         <PanelFooter>
-          <WidgetSelect
-            onChange={e =>
-              dispatch({
-                type: "INSERT_WIDGET",
-                widget: e.target.value,
-                editorState,
-              })
-            }
-          />
+          <WidgetSelect onChange={e => insertWidget(e.target.value)} />
           <select
             value="default"
-            onChange={e =>
-              dispatch({
-                type: "INSERT_TEMPLATE",
-                template: e.target.value,
-                editorState,
-              })
-            }
+            onChange={e => insertTemplate(e.target.value)}
           >
             <option value="default">Insert a template…</option>
             {Object.keys(templates).map(t => (
@@ -175,13 +107,17 @@ const EditorView = ({ widgets, editorState, dispatch }) => {
           </select>
         </PanelFooter>
       </Panel>
-      {Object.entries(widgets).map(([key, value]) => {
-        console.log({ key, value })
-        const Widget = value.editor
+      {Object.entries(question.widgets).map(([key, value]) => {
+        const WidgetEditor = value.editor
         return (
-          <div key={key}>
-            <Widget />
-          </div>
+          <Panel key={key}>
+            <PanelHeading>
+              <PanelTitle>{key}</PanelTitle>
+            </PanelHeading>
+            <PanelBody>
+              <WidgetEditor id={key} {...value.options} />
+            </PanelBody>
+          </Panel>
         )
       })}
     </div>
