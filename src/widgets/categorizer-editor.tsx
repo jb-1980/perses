@@ -1,25 +1,21 @@
 import React from "react"
+import { css } from "emotion"
 
 import { Categorizer } from "./categorizer-renderer"
 import { TextListEditor } from "../UI/text-list-editor"
-import { css } from "emotion"
-
-const serialize = props => ({})
+import { useEditorContext } from "../contexts/editor-context"
 
 const CategorizerEditor = ({
-  initialItems = [""],
-  initialCategories = [""],
-  initialValues = [],
-  initialRandomizeItems = false,
+  id,
+  items = [""],
+  categories = [""],
+  values = [],
+  randomizeItems = false,
 }) => {
-  const [randomizeItems, setRandomizeItems] = React.useState(
-    initialRandomizeItems
-  )
-  const [categories, setCategories] = React.useState(initialCategories)
-  const [items, setItems] = React.useState(initialItems)
-  const [values, setValues] = React.useState(initialValues)
+  const { setWidgetProps } = useEditorContext()
 
-  console.log({ values })
+  const currentProps = { items, categories, values, randomizeItems }
+
   return (
     <div>
       <div
@@ -31,7 +27,12 @@ const CategorizerEditor = ({
           <input
             type="checkbox"
             checked={randomizeItems}
-            onChange={() => setRandomizeItems(!randomizeItems)}
+            onChange={() =>
+              setWidgetProps(id, {
+                ...currentProps,
+                randomizeItems: !randomizeItems,
+              })
+            }
           />
           Randomize Item order
         </label>
@@ -39,23 +40,38 @@ const CategorizerEditor = ({
       Categories:
       <TextListEditor
         list={categories}
-        setList={setCategories}
+        setList={newCategories =>
+          setWidgetProps(id, { ...currentProps, categories: newCategories })
+        }
         layout="horizontal"
       />
       Items:
-      <TextListEditor list={items} setList={setItems} layout="vertical" />
+      <TextListEditor
+        list={items}
+        setList={newItems => {
+          setWidgetProps(id, { ...currentProps, items: newItems })
+        }}
+        layout="vertical"
+      />
       <Categorizer
         categories={categories.slice(0, -1)}
         items={items.slice(0, -1)}
         values={values}
-        setValues={setValues}
-        validator={props => console.log(props)}
+        getNewProps={newProps => setWidgetProps(id, newProps)}
       />
     </div>
   )
 }
 
 export default {
-  name: "Categorizer",
+  displayName: "Categorizer",
+  type: "categorizer",
   editor: CategorizerEditor,
+  graded: true,
+  transform: props => ({
+    randomizeItems: props ? props.randomizeItems : false,
+    values: props ? props.values : [],
+    items: props ? props.items.filter(i => i !== "") : [],
+    categories: props ? props.categories.filter(i => i !== "") : [],
+  }),
 }

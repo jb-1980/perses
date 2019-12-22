@@ -1,16 +1,17 @@
 {
   "name": "perses",
   "version": "1.0.0",
-  "description": "the perses exercise engine",
+  "description": "",
   "keywords": [],
   "main": "src/index.tsx",
   "dependencies": {
     "draft-js": "0.11.3",
     "emotion": "10.0.23",
+    "katex": "0.11.1",
     "react": "16.8.4",
     "react-dom": "16.8.4",
-    "react-markdown": "4.2.2",
-    "react-scripts": "3.3.0"
+    "react-scripts": "3.3.0",
+    "simple-markdown": "0.7.1"
   },
   "devDependencies": {
     "@types/react": "16.8.8",
