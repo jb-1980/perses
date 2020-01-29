@@ -5,18 +5,19 @@
   "keywords": [],
   "main": "src/index.tsx",
   "dependencies": {
-    "draft-js": "0.11.3",
-    "emotion": "10.0.23",
+    "draft-js": "0.11.4",
+    "emotion": "10.0.27",
     "katex": "0.11.1",
-    "react": "16.8.4",
-    "react-dom": "16.8.4",
+    "react": "16.12.0",
+    "react-dom": "16.12.0",
     "react-scripts": "3.3.0",
-    "simple-markdown": "0.7.1"
+    "simple-markdown": "0.7.2"
   },
   "devDependencies": {
-    "@types/react": "16.8.8",
-    "@types/react-dom": "16.8.2",
-    "typescript": "3.3.3"
+    "@types/draft-js": "^0.10.38",
+    "@types/react": "16.9.19",
+    "@types/react-dom": "16.9.5",
+    "typescript": "3.7.5"
   },
   "scripts": {
     "start": "react-scripts start",

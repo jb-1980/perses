@@ -1,12 +1,51 @@
-import * as React from "react"
+import React from "react"
 import { Renderers } from "../widgets"
 
-const Context = React.createContext()
+type widgetType = {
+  type: string
+  displayName: string
+  widget: ({}) => JSX.Element
+  graded: boolean
+  options: {}
+}
 
-const RendererContextProvider = ({ itemData, children }) => {
+type transformedWidgets = widgetType & {
+  grade: (options: {}, props: {}) => boolean
+}
+
+type questionType = {
+  content: string
+  images: {}
+  widgets: { [key: string]: widgetType }
+}
+
+type contextType = {
+  hints: {}
+  question: questionType
+  setWidgetProps: (widgetId: string, newProps: {}) => void
+  calculateGrade: () => boolean
+}
+const Context = React.createContext<Partial<contextType>>({})
+
+type contextProps = {
+  itemData: {
+    question: questionType
+    hints: {}
+  }
+  children: any
+}
+
+const RendererContextProvider = ({ itemData, children }: contextProps) => {
   const transformedWidgets = Object.entries(itemData.question.widgets).reduce(
-    (acc, [widgetId, widget]) => {
-      const { transform, grade } = Renderers.find(w => w.type === widget.type)
+    (acc: { [key: string]: transformedWidgets }, [widgetId, widget]) => {
+      const widgetRenderer = Renderers.find(w => w.type === widget.type)
+      if (!widgetRenderer) {
+        throw Error(
+          `There is no widget of type ${widget?.type}. Was the renderer exported from widgets?`
+        )
+      }
+
+      const { transform, grade } = widgetRenderer
       acc[widgetId] = { ...widget, grade, options: transform(widget.options) }
       return acc
     },
@@ -19,7 +58,7 @@ const RendererContextProvider = ({ itemData, children }) => {
   })
   const { hints } = itemData
 
-  const setWidgetProps = (widgetId, newProps) => {
+  const setWidgetProps = (widgetId: string, newProps: {}) => {
     const widget = question.widgets[widgetId]
     setQuestion({
       ...question,

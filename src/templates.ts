@@ -1,4 +1,4 @@
-export const templates = {
+export const templates: { [key: string]: string } = {
   table: `header 1 | header 2 | header 3
     - | - | -
     data 1 | data 2 | data 3

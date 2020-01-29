@@ -481,10 +481,10 @@ var characterCount = source => {
   return content.length
 }
 
-module.exports = {
-  characterCount: characterCount,
-  traverseContent: traverseContent,
-  parse: parse,
+export default {
+  characterCount,
+  traverseContent,
+  parse,
   parseInline: inlineParser,
   reactFor: SimpleMarkdown.reactFor,
   ruleOutput: SimpleMarkdown.ruleOutput(rules, "react"),

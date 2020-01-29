@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Editor, EditorState, Modifier } from "draft-js"
+import { Editor } from "draft-js"
 import "draft-js/dist/Draft.css"
 
 import { templates } from "./templates"
@@ -42,14 +42,15 @@ const ProvidedQuestionEditor = () => {
     { id: "renderer", name: "Renderer" },
   ]
 
-  const currentView = {
+  const views: { [key: string]: JSX.Element } = {
     editor: <EditorView />,
     renderer: (
       <RendererContextProvider itemData={serialize()}>
         <Renderer />
       </RendererContextProvider>
     ),
-  }[view]
+  }
+  let currentView = views[view]
 
   return (
     <div>

@@ -5,16 +5,52 @@ import "draft-js/dist/Draft.css"
 import { Editors } from "../widgets"
 import { templates } from "../templates"
 
-const EditorContext = React.createContext()
+type questionType = {
+  content: string
+  images: {}
+  widgets: { [key: string]: any }
+}
 
-const EditorContextProvider = ({ initialContents, children }) => {
+type contextTypes = {
+  question: questionType
+  hints: {}
+  editorState: EditorState
+  setQuestion: React.Dispatch<React.SetStateAction<questionType>>
+  updateEditorContent: (newEditorState: EditorState) => void
+  setWidgetProps: (widgetId: string, newProps: {}) => void
+  insertWidget: (widgetId: string) => any
+  insertTemplate: (templateName: string) => any
+  serialize: () => { question: questionType; hints: {} }
+}
+
+const EditorContext = React.createContext<Partial<contextTypes>>({
+  question: {
+    content: "",
+    images: {},
+    widgets: {},
+  },
+  hints: {},
+})
+
+type editorContextProps = {
+  initialContents: {
+    question: questionType
+    hints: {}
+  }
+  children: any
+}
+
+const EditorContextProvider = ({
+  initialContents,
+  children,
+}: editorContextProps) => {
   const [editorState, setEditorState] = React.useState(
     EditorState.createEmpty()
   )
   const [question, setQuestion] = React.useState(initialContents.question)
   const [hints, setHints] = React.useState(initialContents.hints)
 
-  const updateEditorContent = newEditorState => {
+  const updateEditorContent = (newEditorState: EditorState) => {
     setEditorState(newEditorState)
     setQuestion({
       ...question,
@@ -22,7 +58,7 @@ const EditorContextProvider = ({ initialContents, children }) => {
     })
   }
 
-  const insertWidget = widgetType => {
+  const insertWidget = (widgetType: string) => {
     const currentContent = editorState.getCurrentContent()
     const currentSelection = editorState.getSelection()
 
@@ -56,7 +92,7 @@ const EditorContextProvider = ({ initialContents, children }) => {
     })
   }
 
-  const insertTemplate = templateName => {
+  const insertTemplate = (templateName: string) => {
     const currentContent = editorState.getCurrentContent()
     const currentSelection = editorState.getSelection()
 
@@ -78,7 +114,7 @@ const EditorContextProvider = ({ initialContents, children }) => {
   /* This function should only be used in a widget editor as a means of updating
    * the widget's options in the question object
    */
-  const setWidgetProps = (widgetId, newProps) => {
+  const setWidgetProps = (widgetId: string, newProps: {}) => {
     const widget = question.widgets[widgetId]
 
     // There should always be a widget because setWidgetProps should only be called
