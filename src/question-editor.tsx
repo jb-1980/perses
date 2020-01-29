@@ -1,4 +1,5 @@
 import * as React from "react"
+import { css } from "emotion"
 import { Editor } from "draft-js"
 import "draft-js/dist/Draft.css"
 
@@ -12,58 +13,89 @@ import {
   Pills,
 } from "./UI"
 import { Renderer } from "./renderer"
-import { Editors } from "./widgets"
 import {
   EditorContextProvider,
   useEditorContext,
 } from "./contexts/editor-context"
-import { RendererContextProvider } from "./contexts/renderer-context"
+import {
+  RendererContextProvider,
+  useRendererContext,
+} from "./contexts/renderer-context"
+import { objectsAreEqual } from "./util"
 
-const initialEditorContents = {
-  question: {
-    content: "",
-    images: {},
-    widgets: {},
-  },
-  hints: {},
-}
-
-export const QuestionEditor = ({ initialContents = initialEditorContents }) => (
-  <EditorContextProvider initialContents={initialContents}>
-    <ProvidedQuestionEditor />
-  </EditorContextProvider>
-)
-
-const ProvidedQuestionEditor = () => {
+export const QuestionEditor = () => {
   const { serialize } = useEditorContext()
-  const [view, setView] = React.useState("editor")
-  const tabs = [
-    { id: "editor", name: "Editor" },
-    { id: "renderer", name: "Renderer" },
-  ]
-
-  const views: { [key: string]: JSX.Element } = {
-    editor: <EditorView />,
-    renderer: (
-      <RendererContextProvider itemData={serialize()}>
-        <Renderer />
-      </RendererContextProvider>
-    ),
-  }
-  let currentView = views[view]
-
   return (
-    <div>
-      <Pills tabs={tabs} activeTab={view} clickHandler={setView} />
-      {currentView}
+    <div
+      className={css`
+        display: flex;
+      `}
+    >
+      <div
+        className={css`
+          flex: 1;
+        `}
+      >
+        <EditorView />
+      </div>
+      <div
+        className={css`
+          flex: 2;
+          margin: 0 10px;
+          padding: 20px;
+          border: thin solid var(--color-darkText);
+          border-radius: 5px;
+          box-shadow: 0px 0px 5px 1px var(--color-primary);
+          height: 100%;
+        `}
+      >
+        <RendererContextProvider>
+          <EditRenderer questionState={serialize()} />
+        </RendererContextProvider>
+      </div>
     </div>
   )
 }
 
-const WidgetSelect = ({ onChange }) => (
+const EditRenderer = ({ questionState }) => {
+  const { resetQuestion, calculateGrade } = useRendererContext()
+  let [currentState, setCurrentState] = React.useState(questionState)
+  let [isCorrect, setIsCorrect] = React.useState(null)
+  if (!objectsAreEqual(currentState, questionState)) {
+    resetQuestion(questionState)
+    setCurrentState(questionState)
+  }
+
+  return (
+    <div>
+      <Renderer />
+      <div style={{ float: "right" }}>
+        <div style={{ display: "inline-block", marginRight: 5 }}>
+          {isCorrect === null ? null : isCorrect ? "Correct!" : "Incorrect"}
+        </div>
+        <button
+          className={css`
+            background-color: var(--color-primary);
+            color: var(--color-lightText);
+            border: none;
+            padding: 5px;
+            border-radius: 3px;
+            width: 50px;
+            height: 30px;
+          `}
+          onClick={() => setIsCorrect(calculateGrade())}
+        >
+          Grade
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const WidgetSelect = ({ onChange, editors }) => (
   <select value="default" onChange={onChange}>
     <option value="default">Insert a widget…</option>
-    {Editors.map(({ type, displayName }) => (
+    {editors.map(({ type, displayName }) => (
       <option value={type} key={type}>
         {displayName}
       </option>
@@ -78,8 +110,10 @@ const EditorView = () => {
     updateEditorContent,
     insertWidget,
     insertTemplate,
+    widgetEditors,
   } = useEditorContext()
 
+  console.log({ editorQuestion: question })
   return (
     <div>
       <Panel>
@@ -94,7 +128,10 @@ const EditorView = () => {
           />
         </PanelBody>
         <PanelFooter>
-          <WidgetSelect onChange={e => insertWidget(e.target.value)} />
+          <WidgetSelect
+            editors={widgetEditors}
+            onChange={e => insertWidget(e.target.value)}
+          />
           <select
             value="default"
             onChange={e => insertTemplate(e.target.value)}

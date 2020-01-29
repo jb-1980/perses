@@ -2,7 +2,7 @@
 import React from "react"
 import SimpleMarkdown from "simple-markdown"
 import { TeX } from "./UI"
-import { Util } from "./util.js"
+import * as Util from "./util.js"
 
 /**
  * This match function matches math in `$`s, such as:

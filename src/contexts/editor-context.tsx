@@ -1,5 +1,5 @@
 import * as React from "react"
-import { EditorState, Modifier } from "draft-js"
+import { EditorState, ContentState, Modifier } from "draft-js"
 import "draft-js/dist/Draft.css"
 
 import { Editors } from "../widgets"
@@ -134,7 +134,36 @@ const EditorContextProvider = ({
     })
   }
 
+  const resetQuestion = nextState => {
+    console.log({ nextState })
+    if (!nextState) {
+      setQuestion(initialContents.question)
+      setEditorState(EditorState.createEmpty())
+      setHints(initialContents.hints)
+    } else {
+      let _question = {
+        ...nextState.question,
+        widgets: Object.entries(nextState.question.widgets).reduce(
+          (acc, [id, widget]) => {
+            acc[id] = {
+              ...Editors.find(w => w.type === widget.type),
+              ...widget,
+            }
+            return acc
+          },
+          {}
+        ),
+      }
+      setQuestion(_question)
+      let contentState = ContentState.createFromText(_question.content)
+      console.log({ contentState })
+      let _editorState = EditorState.createWithContent(contentState)
+      setEditorState(_editorState)
+      setHints(nextState.hints)
+    }
+  }
   const serialize = () => {
+    console.log({ serializedQuestion: question })
     const _widgets = Object.entries(question.widgets).reduce(
       (acc, [key, value]) => {
         const { editor, transform, options, ...cleanWidget } = value
@@ -151,8 +180,10 @@ const EditorContextProvider = ({
       value={{
         question,
         hints,
+        widgetEditors: Editors,
         editorState,
         setQuestion,
+        resetQuestion,
         updateEditorContent,
         setWidgetProps,
         insertWidget,
