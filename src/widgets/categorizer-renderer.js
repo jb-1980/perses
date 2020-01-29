@@ -106,6 +106,8 @@ export default {
     const { values: correctValues } = options
     const { values: userValues } = props
 
+    if (userValues === undefined) return false
+
     for (let i = 0; i < userValues.length; i += 1) {
       if (correctValues[i] !== userValues[i]) {
         return false
