@@ -1,0 +1,3 @@
+[submodule "react-graphie"]
+	path = react-graphie
+	url = git@github.com:jb-1980/react-graphie.git
