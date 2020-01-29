@@ -1,6 +1,7 @@
-#Perses
+# Perses
 
-##About
+## About
+
 Perses is a next generation exercise editor based on [Khan Academy's Perseus](https://github.com/Khan/perseus). It uses newer features of React like contexts and hooks that were not available when Perseus was first developed. As such, I believe it makes for a simpler interface for the developer to integrate into your application.
 
 ## Usage
