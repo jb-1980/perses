@@ -1,20 +1,20 @@
 import * as React from "react"
 import PersesMarkdown from "./perses-markdown"
-import { Renderers } from "./widgets"
 import { useRendererContext } from "./contexts/renderer-context"
 
 export const Renderer = () => {
   const {
     question: { content, widgets },
     hints,
-    calculateGrade,
     setWidgetProps,
+    widgetRenderers,
   } = useRendererContext()
 
-  const [isCorrect, setIsCorrect] = React.useState(null)
   const renderWidget = widgetId => {
     const { type, options } = widgets[widgetId]
-    const { widget: WidgetRenderer } = Renderers.find(w => w.type === type)
+    const { widget: WidgetRenderer } = widgetRenderers.find(
+      w => w.type === type
+    )
 
     return (
       <WidgetRenderer
@@ -46,11 +46,5 @@ export const Renderer = () => {
 
   const ast = PersesMarkdown.parse(content)
   const output = getOutput(ast)
-  return (
-    <div>
-      {output}
-      <p>{isCorrect === null ? null : isCorrect ? "correct" : "Incorrect"}</p>
-      <button onClick={() => setIsCorrect(calculateGrade())}>grade</button>
-    </div>
-  )
+  return output
 }

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { EditorState, Modifier } from "draft-js"
+import { EditorState, ContentState, Modifier } from "draft-js"
 import "draft-js/dist/Draft.css"
 
 import { Editors } from "../widgets"
@@ -7,12 +7,21 @@ import { templates } from "../templates"
 
 const EditorContext = React.createContext()
 
-const EditorContextProvider = ({ initialContents, children }) => {
+const initialEditorContents = {
+  question: {
+    content: "",
+    images: {},
+    widgets: {},
+  },
+  hints: {},
+}
+
+const EditorContextProvider = ({ children }) => {
   const [editorState, setEditorState] = React.useState(
     EditorState.createEmpty()
   )
-  const [question, setQuestion] = React.useState(initialContents.question)
-  const [hints, setHints] = React.useState(initialContents.hints)
+  const [question, setQuestion] = React.useState(initialEditorContents.question)
+  const [hints, setHints] = React.useState(initialEditorContents.hints)
 
   const updateEditorContent = newEditorState => {
     setEditorState(newEditorState)
@@ -98,7 +107,36 @@ const EditorContextProvider = ({ initialContents, children }) => {
     })
   }
 
+  const resetQuestion = nextState => {
+    console.log({ nextState })
+    if (!nextState) {
+      setQuestion(initialEditorContents.question)
+      setEditorState(EditorState.createEmpty())
+      setHints(initialEditorContents.hints)
+    } else {
+      let _question = {
+        ...nextState.question,
+        widgets: Object.entries(nextState.question.widgets).reduce(
+          (acc, [id, widget]) => {
+            acc[id] = {
+              ...Editors.find(w => w.type === widget.type),
+              ...widget,
+            }
+            return acc
+          },
+          {}
+        ),
+      }
+      setQuestion(_question)
+      let contentState = ContentState.createFromText(_question.content)
+      console.log({ contentState })
+      let _editorState = EditorState.createWithContent(contentState)
+      setEditorState(_editorState)
+      setHints(nextState.hints)
+    }
+  }
   const serialize = () => {
+    console.log({ serializedQuestion: question })
     const _widgets = Object.entries(question.widgets).reduce(
       (acc, [key, value]) => {
         const { editor, transform, options, ...cleanWidget } = value
@@ -115,8 +153,10 @@ const EditorContextProvider = ({ initialContents, children }) => {
       value={{
         question,
         hints,
+        widgetEditors: Editors,
         editorState,
         setQuestion,
+        resetQuestion,
         updateEditorContent,
         setWidgetProps,
         insertWidget,
